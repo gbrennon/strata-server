@@ -84,4 +84,9 @@ if SSH_LOG="$tmp_dir/ssh.log" SSH_BIN="$tmp_dir/ssh" CURL_BIN="$tmp_dir/curl" \
   exit 1
 fi
 test "$original_models" = "$(cat "$models_file")"
+status_output="$(SSH_BIN="$tmp_dir/ssh" CURL_BIN="$tmp_dir/curl" \
+  PI_MODELS_FILE="$models_file" STATE_DIR="$state_dir" \
+  TOGGLE_RUNTIME_ALLOW_NONROOT=1 "$script" status)"
+grep -q 'provider=gbrennon-llama' <<<"$status_output"
+grep -q 'tunnel=inactive' <<<"$status_output"
 printf 'bootstrap runtime tests passed\n'

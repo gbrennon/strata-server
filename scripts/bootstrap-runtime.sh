@@ -184,7 +184,11 @@ PY
     printf 'active api='
     if [[ "$runtime" != inactive ]]; then
       runtime_settings "$runtime"
-      "$curl_bin" --fail --silent "$health_url" >/dev/null 2>&1 && printf 'healthy\n' || printf 'unhealthy\n'
+      if "$curl_bin" --fail --silent "$health_url" >/dev/null 2>&1; then
+        printf 'healthy\n'
+      else
+        printf 'unhealthy\n'
+      fi
     else
       printf 'unknown\n'
     fi
