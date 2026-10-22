@@ -1,0 +1,29 @@
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Check ROCm utility
+  ansible.builtin.command: command -v rocm-smi
+  register: rocm_smi_path
+  changed_when: false
+
+- name: Read model filesystem capacity
+  ansible.builtin.shell: df -Pk "{{ strata_data_dir }}" | awk 'NR == 2 {print $4}'
+  register: model_filesystem_kib
+  changed_when: false
+
+- name: Check Strata port
+  ansible.builtin.shell: ss -ltnH "sport = :{{ strata_port }}"
+  register: strata_port_state
+  changed_when: false
+  failed_when: false
+
+- name: Validate Strata host
+  ansible.builtin.assert:
+    that:
+      - rocm_smi_path.rc == 0
+      - model_filesystem_kib.stdout | int >= 125000000
+      - strata_port_state.stdout | trim == ''
+      - (llama_service_name + '.service') in ansible_facts.services
+    fail_msg: >-
+      Strata preflight failed. Require the target user, ROCm, 120 GB free space,
+      a free Strata port, and the existing llama service.

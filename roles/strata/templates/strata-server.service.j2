@@ -1,0 +1,24 @@
+[Unit]
+Description=Strata Qwen3.8-Flash-Next inference server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User={{ strata_user }}
+Group={{ strata_user }}
+WorkingDirectory={{ strata_home }}
+Environment=HOME={{ strata_home }}
+Environment=PATH={{ strata_home }}/.local/bin:{{ strata_home }}/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart={{ strata_command_result.stdout | trim }} launch --model {{ strata_model }} --port {{ strata_port }} --access local --yes --no-tui
+ExecStop={{ strata_command_result.stdout | trim }} launch --stop
+RemainAfterExit=yes
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths={{ strata_data_dir }} {{ strata_home }}/.config {{ strata_home }}/.cache
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

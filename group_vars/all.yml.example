@@ -8,4 +8,5 @@ llama_service_name: llama-server
 strata_service_name: strata-server
 strata_health_timeout_seconds: 900
 strata_health_interval_seconds: 5
+strata_terminal_install_url: https://github.com/Niko1221/Strata/releases/latest/download/install.sh
 benchmark_max_tokens: 256

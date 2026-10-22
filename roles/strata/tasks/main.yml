@@ -1,0 +1,84 @@
+- name: Create Strata directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ strata_user }}"
+    group: "{{ strata_user }}"
+    mode: "0750"
+  loop:
+    - "{{ strata_data_dir }}"
+    - "{{ strata_data_dir }}/models"
+    - "{{ strata_data_dir }}/logs"
+
+- name: Download Strata installer
+  ansible.builtin.get_url:
+    url: "{{ strata_terminal_install_url }}"
+    dest: "{{ strata_home }}/strata-install.sh"
+    owner: "{{ strata_user }}"
+    group: "{{ strata_user }}"
+    mode: "0700"
+  register: strata_installer
+
+- name: Install Strata terminal
+  become_user: "{{ strata_user }}"
+  ansible.builtin.command: sh "{{ strata_home }}/strata-install.sh"
+  args:
+    chdir: "{{ strata_home }}"
+  environment:
+    HOME: "{{ strata_home }}"
+  when: strata_installer.changed
+
+- name: Locate Strata command
+  become_user: "{{ strata_user }}"
+  ansible.builtin.shell: command -v strata
+  args:
+    chdir: "{{ strata_home }}"
+    executable: /bin/bash
+  environment:
+    HOME: "{{ strata_home }}"
+    PATH: "{{ strata_home }}/.local/bin:{{ strata_home }}/bin:/usr/local/bin:/usr/bin:/bin"
+  register: strata_command_result
+  changed_when: false
+
+- name: Validate Strata command
+  ansible.builtin.assert:
+    that:
+      - strata_command_result.rc == 0
+      - strata_command_result.stdout | trim != ''
+    fail_msg: Strata installation completed without an executable command.
+
+- name: Show Strata launch plan
+  become_user: "{{ strata_user }}"
+  ansible.builtin.command:
+    argv:
+      - "{{ strata_command_result.stdout | trim }}"
+      - launch
+      - --plan
+      - --model
+      - "{{ strata_model }}"
+      - --port
+      - "{{ strata_port | string }}"
+      - --access
+      - local
+  args:
+    chdir: "{{ strata_home }}"
+  environment:
+    HOME: "{{ strata_home }}"
+    PATH: "{{ strata_home }}/.local/bin:{{ strata_home }}/bin:/usr/local/bin:/usr/bin:/bin"
+  changed_when: false
+
+- name: Install Strata systemd service
+  ansible.builtin.template:
+    src: strata-server.service.j2
+    dest: "/etc/systemd/system/{{ strata_service_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Keep Strata stopped until runtime switch
+  ansible.builtin.systemd:
+    name: "{{ strata_service_name }}"
+    enabled: false
+    state: stopped
+    daemon_reload: true
