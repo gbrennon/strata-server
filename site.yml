@@ -1,0 +1,6 @@
+- name: Prepare Strata host
+  hosts: strata
+  become: true
+  roles:
+    - preflight
+    - strata

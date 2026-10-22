@@ -1,0 +1,11 @@
+strata_user: gbrennon-local-ai
+strata_home: /home/gbrennon-local-ai
+strata_data_dir: /home/gbrennon-local-ai/.local/share/strata
+strata_model: iq3_s
+strata_bind: 127.0.0.1
+strata_port: 8082
+llama_service_name: llama-server
+strata_service_name: strata-server
+strata_health_timeout_seconds: 900
+strata_health_interval_seconds: 5
+benchmark_max_tokens: 256
