@@ -25,6 +25,9 @@ FAKE
 cat > "$tmp_dir/curl" <<'FAKE'
 #!/usr/bin/env bash
 set -euo pipefail
+if [[ "${CURL_FAIL:-0}" == 1 ]]; then
+  exit 1
+fi
 url="${@: -1}"
 case "$url" in
   */health) printf '{"status":"ok"}\n' ;;
@@ -73,4 +76,12 @@ providers = json.load(open(sys.argv[1]))["providers"]
 assert list(providers) == ["other", "gbrennon-llama"]
 PY
 kill "$(cat "$state_dir/tunnel.pid")" 2>/dev/null || true
+original_models="$(cat "$models_file")"
+if SSH_LOG="$tmp_dir/ssh.log" SSH_BIN="$tmp_dir/ssh" CURL_BIN="$tmp_dir/curl" \
+  CURL_FAIL=1 HEALTH_ATTEMPTS=1 PI_MODELS_FILE="$models_file" STATE_DIR="$state_dir" \
+  TOGGLE_RUNTIME_ALLOW_NONROOT=1 "$script" strata; then
+  printf 'Expected API failure\n' >&2
+  exit 1
+fi
+test "$original_models" = "$(cat "$models_file")"
 printf 'bootstrap runtime tests passed\n'
