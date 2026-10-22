@@ -7,6 +7,7 @@ state_dir="${STATE_DIR:-$HOME/.local/state/strata-server-toggle}"
 local_api_port="${LOCAL_API_PORT:-18080}"
 ssh_bin="${SSH_BIN:-ssh}"
 curl_bin="${CURL_BIN:-curl}"
+remote_toggle_command="${REMOTE_TOGGLE_COMMAND:-/usr/local/bin/toggle-ai-runtime}"
 health_attempts="${HEALTH_ATTEMPTS:-30}"
 health_interval="${HEALTH_INTERVAL:-1}"
 tunnel_pid_file="$state_dir/tunnel.pid"
@@ -203,7 +204,7 @@ if [[ "$runtime" == status ]]; then
   exit 0
 fi
 runtime_settings "$runtime"
-"$ssh_bin" "$ssh_target" "sudo toggle-ai-runtime ${runtime}" || \
+"$ssh_bin" "$ssh_target" "sudo ${remote_toggle_command} ${runtime}" || \
   fail "Could not switch the remote runtime to ${runtime}."
 stop_tunnel
 start_tunnel

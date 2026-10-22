@@ -45,7 +45,7 @@ SSH_LOG="$tmp_dir/ssh.log" SSH_BIN="$tmp_dir/ssh" CURL_BIN="$tmp_dir/curl" \
   PI_MODELS_FILE="$models_file" STATE_DIR="$state_dir" \
   TOGGLE_RUNTIME_ALLOW_NONROOT=1 "$script" strata
 
-grep -q 'sudo toggle-ai-runtime strata' "$tmp_dir/ssh.log"
+grep -q 'sudo /usr/local/bin/toggle-ai-runtime strata' "$tmp_dir/ssh.log"
 grep -q '127.0.0.1:8082' "$tmp_dir/ssh.log"
 python3 - "$models_file" <<'PY'
 import json
@@ -66,7 +66,7 @@ SSH_LOG="$tmp_dir/ssh.log" SSH_BIN="$tmp_dir/ssh" CURL_BIN="$tmp_dir/curl" \
   PI_MODELS_FILE="$models_file" STATE_DIR="$state_dir" \
   TOGGLE_RUNTIME_ALLOW_NONROOT=1 "$script" llama
 
-grep -q 'sudo toggle-ai-runtime llama' "$tmp_dir/ssh.log"
+grep -q 'sudo /usr/local/bin/toggle-ai-runtime llama' "$tmp_dir/ssh.log"
 grep -q '127.0.0.1:8080' "$tmp_dir/ssh.log"
 python3 - "$models_file" <<'PY'
 import json
