@@ -10,7 +10,11 @@ Group={{ strata_user }}
 WorkingDirectory={{ strata_home }}
 Environment=HOME={{ strata_home }}
 Environment=PATH={{ strata_home }}/.local/bin:{{ strata_home }}/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart={{ strata_command_result.stdout | trim }} launch --model {{ strata_model }} --port {{ strata_port }} --access local --yes --no-tui
+ExecStart={{ strata_command_result.stdout | trim }} launch \
+  --model {{ strata_model }} \
+  --port {{ strata_port }} \
+  --install-dir {{ strata_install_dir }} \
+  --access local --yes --no-tui
 ExecStop={{ strata_command_result.stdout | trim }} launch --stop
 RemainAfterExit=yes
 NoNewPrivileges=true

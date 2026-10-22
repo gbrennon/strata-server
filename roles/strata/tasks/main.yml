@@ -8,6 +8,7 @@
   loop:
     - "{{ strata_data_dir }}"
     - "{{ strata_data_dir }}/models"
+    - "{{ strata_install_dir }}"
     - "{{ strata_data_dir }}/logs"
 
 - name: Download Strata installer
@@ -58,6 +59,8 @@
       - "{{ strata_model }}"
       - --port
       - "{{ strata_port | string }}"
+      - --install-dir
+      - "{{ strata_install_dir }}"
       - --access
       - local
   args:

@@ -5,3 +5,4 @@ deploy_state.json
 __pycache__/
 *.pyc
 inventory.ini
+group_vars/all.yml

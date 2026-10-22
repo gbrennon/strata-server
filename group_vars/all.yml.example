@@ -1,6 +1,7 @@
 strata_user: gbrennon-local-ai
 strata_home: /home/gbrennon-local-ai
 strata_data_dir: /home/gbrennon-local-ai/.local/share/strata
+strata_install_dir: /home/gbrennon-local-ai/.local/share/strata/install
 strata_model: iq3_s
 strata_bind: 127.0.0.1
 strata_port: 8082
