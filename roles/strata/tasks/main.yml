@@ -59,8 +59,8 @@
       - "{{ strata_model }}"
       - --port
       - "{{ strata_port | string }}"
-      - --install-dir
-      - "{{ strata_install_dir }}"
+      - --data-dir
+      - "{{ strata_data_dir }}"
       - --access
       - local
   args:
