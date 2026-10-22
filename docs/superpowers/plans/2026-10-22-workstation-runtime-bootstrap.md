@@ -142,14 +142,14 @@ handling pass before the commit.
 
 Assert that an unrelated provider remains unchanged, the selected provider has
 base URL `http://127.0.0.1:18080/v1`, API `openai-completions`, key `local`,
-and the discovered model ID. Assert that the inactive `gbrennon-*` provider is
-absent and a backup contains the original JSON.
+and the discovered model ID. Assert that the legacy `evo-x2-llama` and
+`local-llama-cpp` providers are absent and a backup contains the original JSON.
 
 - [ ] **Step 2: Add the embedded Python transformation.**
 
 Pass the provider, model ID, target path, and backup path through environment
 variables. Parse the existing JSON, copy it to the backup, remove only
-`gbrennon-strata` and `gbrennon-llama`, add the selected provider, write a
+`evo-x2-llama` and `local-llama-cpp`, add or replace the selected provider, write a
 mode-`0600` temporary file beside the target, and replace the target with
 `os.replace`. Preserve unrelated keys and fail on invalid JSON.
 

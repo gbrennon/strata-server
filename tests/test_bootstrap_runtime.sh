@@ -39,7 +39,7 @@ FAKE
 chmod +x "$tmp_dir/ssh" "$tmp_dir/curl"
 
 models_file="$tmp_dir/models.json"
-printf '%s\n' '{"providers":{"other":{"baseUrl":"http://other/v1"},"gbrennon-llama":{"models":[{"id":"old"}]}}}' > "$models_file"
+printf '%s\n' '{"providers":{"other":{"baseUrl":"http://other/v1"},"evo-x2-llama":{"models":[{"id":"old"}]},"local-llama-cpp":{"models":[{"id":"old"}]},"gbrennon-llama":{"models":[{"id":"old"}]}}}' > "$models_file"
 state_dir="$tmp_dir/state"
 SSH_LOG="$tmp_dir/ssh.log" SSH_BIN="$tmp_dir/ssh" CURL_BIN="$tmp_dir/curl" \
   PI_MODELS_FILE="$models_file" STATE_DIR="$state_dir" \
@@ -52,9 +52,11 @@ import json
 import sys
 
 providers = json.load(open(sys.argv[1]))["providers"]
-assert list(providers) == ["other", "gbrennon-strata"]
+assert list(providers) == ["other", "gbrennon-llama", "gbrennon-strata"]
 assert providers["gbrennon-strata"]["baseUrl"] == "http://127.0.0.1:18080/v1"
 assert providers["gbrennon-strata"]["models"][0]["id"] == "qwen3.8-flash-next-iq3_s"
+assert "evo-x2-llama" not in providers
+assert "local-llama-cpp" not in providers
 PY
 
 backup_count="$(find "$tmp_dir" -name 'models.json.*.bak' | wc -l)"

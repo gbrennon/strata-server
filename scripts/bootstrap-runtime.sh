@@ -140,8 +140,8 @@ else:
 providers = data.setdefault("providers", {})
 if not isinstance(providers, dict):
     raise SystemExit("Pi models.json providers must be an object")
-providers.pop("gbrennon-strata", None)
-providers.pop("gbrennon-llama", None)
+providers.pop("evo-x2-llama", None)
+providers.pop("local-llama-cpp", None)
 providers[os.environ["PROVIDER_NAME"]] = {
     "baseUrl": "http://127.0.0.1:18080/v1",
     "api": "openai-completions",

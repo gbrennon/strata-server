@@ -61,7 +61,7 @@ The active provider will contain:
 - A local placeholder API key.
 - The model ID returned by `/v1/models`.
 
-The inactive custom provider will be removed so Pi presents only the selected runtime.
+Only the legacy `evo-x2-llama` and `local-llama-cpp` providers will be removed.
 Existing configuration will be copied to a timestamped backup before replacement.
 
 An already-running Pi session will require `/reload` and `/model` to select the updated model.
