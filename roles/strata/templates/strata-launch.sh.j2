@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+case "${1:-start}" in
+  start)
+    exec {{ strata_command_result.stdout | trim }} launch \
+      --model {{ strata_model }} \
+      --port {{ strata_port }} \
+      --data-dir {{ strata_data_dir }} \
+      --access local --yes --no-tui
+    ;;
+  stop)
+    exec {{ strata_command_result.stdout | trim }} launch --stop
+    ;;
+  *)
+    printf 'Unknown action: %s\n' "$1" >&2
+    exit 2
+    ;;
+esac

@@ -27,6 +27,7 @@ class CompletionMeasurement:
     model: str
     prompt_tokens: int
     completion_tokens: int
+    max_tokens: int
     started_at: float
     first_token_at: float
     finished_at: float
@@ -172,6 +173,7 @@ def stream_completion(
         model=model,
         prompt_tokens=prompt_tokens or estimated_token_count(prompt),
         completion_tokens=completion_tokens or estimated_token_count("".join(pieces)),
+        max_tokens=max_tokens,
         started_at=started_at,
         first_token_at=first_token_at,
         finished_at=finished_at,
@@ -307,7 +309,7 @@ def render_report(
             "",
             "## Request",
             "",
-            f"- Maximum output tokens: `{measurement.completion_tokens}`",
+            f"- Maximum output tokens: `{measurement.max_tokens}`",
             f"- Prompt: {prompt}",
             "",
             "## System Information",

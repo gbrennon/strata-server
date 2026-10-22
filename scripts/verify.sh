@@ -3,7 +3,9 @@ set -euo pipefail
 
 remote_target="${REMOTE_TARGET:-}"
 port="${STRATA_PORT:-8082}"
-model="${MODEL:-iq3_s}"
+model="${API_MODEL:-}"
+health_timeout="${STRATA_HEALTH_TIMEOUT:-7200}"
+health_interval="${STRATA_HEALTH_INTERVAL:-5}"
 
 while (($# > 0)); do
   case "$1" in
@@ -34,9 +36,33 @@ run_remote() {
   fi
 }
 
-run_remote "curl --fail --silent --show-error http://127.0.0.1:${port}/health" >/dev/null
+wait_for_health() {
+  local deadline=$((SECONDS + health_timeout))
+  while ((SECONDS < deadline)); do
+    if run_remote "curl --fail --silent --show-error http://127.0.0.1:${port}/health" \
+      >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep "$health_interval"
+  done
+  printf 'Strata health check timed out after %s seconds\n' "$health_timeout" >&2
+  return 1
+}
+
+wait_for_health
 models_json="$(run_remote "curl --fail --silent --show-error http://127.0.0.1:${port}/v1/models")"
 python3 -c 'import json, sys; json.load(sys.stdin)' <<<"$models_json"
+if [[ -z "$model" ]]; then
+  model="$(MODELS_JSON="$models_json" python3 - <<'PY'
+import json
+import os
+
+listing = json.loads(os.environ["MODELS_JSON"])
+entry = listing["data"][0]
+print(entry.get("id") or entry.get("name") or entry.get("model"))
+PY
+)"
+fi
 
 payload="$(python3 - "$model" <<'PY'
 import json

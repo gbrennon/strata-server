@@ -8,7 +8,6 @@
   loop:
     - "{{ strata_data_dir }}"
     - "{{ strata_data_dir }}/models"
-    - "{{ strata_install_dir }}"
     - "{{ strata_data_dir }}/logs"
 
 - name: Download Strata installer
@@ -69,6 +68,14 @@
     HOME: "{{ strata_home }}"
     PATH: "{{ strata_home }}/.local/bin:{{ strata_home }}/bin:/usr/local/bin:/usr/bin:/bin"
   changed_when: false
+
+- name: Install Strata launch wrapper
+  ansible.builtin.template:
+    src: strata-launch.sh.j2
+    dest: "{{ strata_data_dir }}/strata-launch.sh"
+    owner: "{{ strata_user }}"
+    group: "{{ strata_user }}"
+    mode: "0750"
 
 - name: Install Strata systemd service
   ansible.builtin.template:

@@ -77,7 +77,14 @@ fi
 save_state
 restore_on_error=1
 
-trap 'if (( restore_on_error )); then STATE_FILE="$state_file" INVENTORY="$inventory" LIMIT="$limit" "$repo_root/scripts/restore.sh" || true; fi' ERR
+recover_after_error() {
+  if ((restore_on_error)); then
+    STATE_FILE="$state_file" INVENTORY="$inventory" LIMIT="$limit" \
+      "$repo_root/scripts/restore.sh" || true
+  fi
+}
+
+trap recover_after_error ERR
 
 "$ansible_playbook_bin" -i "$inventory" "$repo_root/site.yml" \
   --limit "$limit" -e "strata_model=$model strata_port=$port"

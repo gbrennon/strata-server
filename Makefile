@@ -3,6 +3,7 @@ SHELL := /usr/bin/env bash
 INVENTORY ?= inventory.ini
 LIMIT ?=
 MODEL ?= iq3_s
+API_MODEL ?=
 SSH_TARGET ?=
 REMOTE_PORT ?= 8082
 
@@ -19,11 +20,12 @@ deploy: require-target
 	INVENTORY="$(INVENTORY)" LIMIT="$(LIMIT)" MODEL="$(MODEL)" ./scripts/deploy.sh
 
 verify:
-	REMOTE_TARGET="$(SSH_TARGET)" STRATA_PORT="$(REMOTE_PORT)" MODEL="$(MODEL)" \
+	REMOTE_TARGET="$(SSH_TARGET)" STRATA_PORT="$(REMOTE_PORT)" \
+	  API_MODEL="$(API_MODEL)" ./scripts/verify.sh
 	  ./scripts/verify.sh
 
 benchmark:
-	./scripts/benchmark.py --base-url http://127.0.0.1:8082 --model "$(MODEL)" \
+	./scripts/benchmark.py --base-url http://127.0.0.1:8082 --model "$(API_MODEL)" \
 	  --ssh-target "$(SSH_TARGET)" --remote-port "$(REMOTE_PORT)"
 
 restore: require-target

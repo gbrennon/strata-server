@@ -41,7 +41,17 @@ else
 fi
 if [[ "$llama_active" == "active" ]]; then
   remote 'sudo systemctl start llama-server.service'
-  remote 'curl --fail --silent --show-error http://127.0.0.1:8080/health' >/dev/null
+  for attempt in $(seq 1 60); do
+    if remote 'curl --fail --silent --show-error \
+      http://127.0.0.1:8080/health' >/dev/null 2>&1; then
+      break
+    fi
+    if [[ "$attempt" == 60 ]]; then
+      printf 'llama-server health check timed out\n' >&2
+      exit 1
+    fi
+    sleep 1
+  done
 else
   remote 'sudo systemctl stop llama-server.service'
 fi

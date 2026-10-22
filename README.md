@@ -27,4 +27,5 @@ make benchmark
 make restore INVENTORY=inventory.ini LIMIT=strata-server
 ```
 
-Benchmark reports are written to `results/` on this workstation and are ignored by git.
+Benchmark reports are written to `results/` on this workstation and are ignored by git. Strata
+runs in console/API mode with `--no-tui`; it does not open or require a web UI.
