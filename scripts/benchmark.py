@@ -202,7 +202,11 @@ def collect_system_info(ssh_target: str) -> str:
     """Collects non-secret hardware and service information."""
     command = (
         "printf '%s\\n' '--- rocm ---'; rocm-smi; "
+        "printf '%s\\n' '--- vram ---'; rocm-smi --showmeminfo vram; "
+        "printf '%s\\n' '--- device ---'; "
+        "rocminfo | grep -E 'Marketing Name:|Name:.*gfx' | head -10; "
         "printf '%s\\n' '--- memory ---'; free -h; "
+        "printf '%s\\n' '--- strata ---'; strata --version; "
         "printf '%s\\n' '--- service ---'; "
         "systemctl is-active strata-server.service"
     )
