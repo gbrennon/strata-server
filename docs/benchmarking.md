@@ -49,6 +49,24 @@ The deploy pins the experts into the free carve-out VRAM and bounds the KV cache
 Measured decode (200-word prompt, 300 tokens): ~33 tok/s with the starving auto
 config, ~42 tok/s after pinning the experts into VRAM.
 
+## Measured ratios
+
+Same 200-word prompt, 300 generated tokens, measured through the local API.
+
+| Runtime and model | Decode | Prefill |
+|---|---|---|
+| Strata Qwen3.8-Flash-Next IQ3_S, before fix (128K, SSD spill) | 33.1 tok/s | 76 tok/s |
+| Strata Qwen3.8-Flash-Next IQ3_S, after fix (32K, VRAM resident) | 42.4 tok/s | 99 tok/s |
+| Strata Qwen3.8-Flash-Next IQ3_S, after fix (8K, VRAM resident) | 43.3 tok/s | 105 tok/s |
+| llama.cpp Qwen3-30B-A3B Q4_K_M baseline | 70.0 tok/s | 290 tok/s |
+
+Derived ratios:
+
+- Strata fix uplift: 42.4 / 33.1 = 1.28x decode (+28%), 99 / 76 = 1.30x prefill.
+- Strata after fix over llama.cpp baseline: 42.4 / 70.0 = 0.61 decode (different
+  model sizes, so this is a runtime-plus-model comparison, not an engine comparison).
+- Strata speculative draft acceptance: about 150 of 280 drafted tokens (~0.53).
+
 To reach the maintainer reference (IQ3_S ~59.7 tok/s at 8K, ~42.8 tok/s at 128K) the
 BIOS carve-out must be reduced to the minimum so the full ~128 GiB becomes system RAM.
 Strata then keeps every expert resident in the unified pool. The large dedicated
