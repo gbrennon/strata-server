@@ -1,0 +1,7 @@
+- name: Install runtime toggle command
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/scripts/toggle-runtime.sh"
+    dest: /usr/local/bin/toggle-ai-runtime
+    owner: root
+    group: root
+    mode: "0750"
