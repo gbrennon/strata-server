@@ -7,7 +7,11 @@ case "${1:-start}" in
       --model {{ strata_model }} \
       --port {{ strata_port }} \
       --data-dir {{ strata_data_dir }} \
-      --access local --yes --no-tui
+      --context {{ strata_context }} \
+      --kv {{ strata_kv }} \
+      --set expert-cache={{ strata_expert_cache_slots }} \
+{% for engine_setting in strata_engine_settings %}      --set {{ engine_setting }} \
+{% endfor %}      --access local --yes --no-tui
     ;;
   stop)
     exec {{ strata_command_result.stdout | trim }} launch --stop
