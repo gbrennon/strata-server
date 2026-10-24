@@ -4,6 +4,11 @@ strata_data_dir: /home/gbrennon-local-ai/.local/share/strata
 strata_model: iq3_s
 strata_bind: 127.0.0.1
 strata_port: 8082
+strata_context: 32k
+strata_kv: int8
+strata_expert_cache_slots: 24576
+strata_engine_settings:
+  - prefill=16384
 llama_service_name: llama-server
 strata_service_name: strata-server
 strata_health_timeout_seconds: 900
