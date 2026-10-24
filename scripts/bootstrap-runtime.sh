@@ -37,16 +37,18 @@ runtime_settings() {
   completions_url="http://127.0.0.1:${local_api_port}/v1/chat/completions"
 }
 
+terminate_tunnel_process() {
+  local tunnel_pid="$1"
+  [[ "$tunnel_pid" =~ ^[0-9]+$ ]] || return 0
+  kill -0 "$tunnel_pid" 2>/dev/null || return 0
+  kill "$tunnel_pid" 2>/dev/null || true
+  wait "$tunnel_pid" 2>/dev/null || true
+}
+
 stop_tunnel() {
-  local tunnel_pid
-  if [[ -f "$tunnel_pid_file" ]]; then
-    tunnel_pid="$(<"$tunnel_pid_file")"
-    if [[ "$tunnel_pid" =~ ^[0-9]+$ ]] && kill -0 "$tunnel_pid" 2>/dev/null; then
-      kill "$tunnel_pid" 2>/dev/null || true
-      wait "$tunnel_pid" 2>/dev/null || true
-    fi
-    rm -f "$tunnel_pid_file"
-  fi
+  [[ -f "$tunnel_pid_file" ]] || return 0
+  terminate_tunnel_process "$(<"$tunnel_pid_file")"
+  rm -f "$tunnel_pid_file"
 }
 
 wait_for_health() {
@@ -160,17 +162,17 @@ temporary_path.chmod(0o600)
 temporary_path.write_text(json.dumps(data, indent=2) + "\n")
 os.replace(temporary_path, path)
 PY
-  printf '%s\n' "$1" > "$runtime_file"
+  printf '%s\n' "$runtime" > "$runtime_file"
 }
 
-status() {
-  local runtime="inactive"
-  local provider="none"
-  if [[ -f "$runtime_file" ]]; then
-    runtime="$(<"$runtime_file")"
-  fi
-  if [[ -f "$models_file" ]]; then
-    provider="$(MODELS_FILE="$models_file" python3 - <<'PY'
+read_runtime_label() {
+  [[ -f "$runtime_file" ]] || { printf 'inactive\n'; return 0; }
+  printf '%s\n' "$(<"$runtime_file")"
+}
+
+read_active_provider() {
+  [[ -f "$models_file" ]] || { printf 'none\n'; return 0; }
+  MODELS_FILE="$models_file" python3 - <<'PY'
 import json
 import os
 
@@ -178,21 +180,27 @@ providers = json.loads(open(os.environ["MODELS_FILE"]).read()).get("providers", 
 active = [name for name in ("gbrennon-strata", "gbrennon-llama") if name in providers]
 print(active[0] if active else "none")
 PY
-)"
-  fi
+}
+
+tunnel_is_active() {
+  [[ -f "$tunnel_pid_file" ]] || return 1
+  kill -0 "$(<"$tunnel_pid_file")" 2>/dev/null
+}
+
+api_health_label() {
+  local runtime="$1"
+  [[ "$runtime" != inactive ]] || { printf 'unknown'; return 0; }
+  runtime_settings "$runtime"
+  "$curl_bin" --fail --silent "$health_url" >/dev/null 2>&1 && printf 'healthy' || printf 'unhealthy'
+}
+
+status() {
+  local runtime provider
+  runtime="$(read_runtime_label)"
+  provider="$(read_active_provider)"
   printf 'runtime=%s provider=%s tunnel=' "$runtime" "$provider"
-  if [[ -f "$tunnel_pid_file" ]] && kill -0 "$(<"$tunnel_pid_file")" 2>/dev/null; then
-    printf 'active api='
-    if [[ "$runtime" != inactive ]]; then
-      runtime_settings "$runtime"
-      if "$curl_bin" --fail --silent "$health_url" >/dev/null 2>&1; then
-        printf 'healthy\n'
-      else
-        printf 'unhealthy\n'
-      fi
-    else
-      printf 'unknown\n'
-    fi
+  if tunnel_is_active; then
+    printf 'active api=%s\n' "$(api_health_label "$runtime")"
   else
     printf 'inactive api=unavailable\n'
   fi
