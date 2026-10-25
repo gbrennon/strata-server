@@ -117,8 +117,7 @@ PY
   printf '%s\n' "$model_id"
 }
 
-update_models_file() {
-  local model_id="$1"
+clean_pi_provider_duplicates() {
   local backup_file
   local parent_dir
   parent_dir="$(dirname "$models_file")"
@@ -127,29 +126,24 @@ update_models_file() {
     backup_file="${models_file}.$(date -u +%Y%m%dT%H%M%SZ).bak"
     cp -- "$models_file" "$backup_file"
   fi
-  MODELS_FILE="$models_file" PROVIDER_NAME="$provider_name" MODEL_ID="$model_id" \
-    python3 - <<'PY'
+  MODELS_FILE="$models_file" python3 - <<'PY'
 import json
 import os
 import pathlib
 import tempfile
 
 path = pathlib.Path(os.environ["MODELS_FILE"])
-if path.exists():
-    data = json.loads(path.read_text())
-else:
-    data = {}
+data = json.loads(path.read_text()) if path.exists() else {}
 providers = data.setdefault("providers", {})
 if not isinstance(providers, dict):
     raise SystemExit("Pi models.json providers must be an object")
-providers.pop("evo-x2-llama", None)
-providers.pop("local-llama-cpp", None)
-providers[os.environ["PROVIDER_NAME"]] = {
-    "baseUrl": "http://127.0.0.1:18080/v1",
-    "api": "openai-completions",
-    "apiKey": "local",
-    "models": [{"id": os.environ["MODEL_ID"]}],
-}
+for provider in (
+    "evo-x2-llama",
+    "local-llama-cpp",
+    "gbrennon-llama",
+    "gbrennon-strata",
+):
+    providers.pop(provider, None)
 file_descriptor, temporary_name = tempfile.mkstemp(
     dir=path.parent,
     prefix=f".{path.name}.",
@@ -177,8 +171,7 @@ import json
 import os
 
 providers = json.loads(open(os.environ["MODELS_FILE"]).read()).get("providers", {})
-active = [name for name in ("gbrennon-strata", "gbrennon-llama") if name in providers]
-print(active[0] if active else "none")
+print("gbrennon-server" if "gbrennon-server" in providers else "none")
 PY
 }
 
@@ -191,7 +184,11 @@ api_health_label() {
   local runtime="$1"
   [[ "$runtime" != inactive ]] || { printf 'unknown'; return 0; }
   runtime_settings "$runtime"
-  "$curl_bin" --fail --silent "$health_url" >/dev/null 2>&1 && printf 'healthy' || printf 'unhealthy'
+  if "$curl_bin" --fail --silent "$health_url" >/dev/null 2>&1; then
+    printf 'healthy'
+  else
+    printf 'unhealthy'
+  fi
 }
 
 status() {
@@ -217,5 +214,6 @@ runtime_settings "$runtime"
 stop_tunnel
 start_tunnel
 model_id="$(verify_api)"
-update_models_file "$model_id"
-printf '%s active through Pi provider %s (model %s).\n' "$runtime" "$provider_name" "$model_id"
+clean_pi_provider_duplicates
+printf '%s active; canonical Pi provider gbrennon-server is preserved (model %s).\n' \
+  "$runtime" "$model_id"
