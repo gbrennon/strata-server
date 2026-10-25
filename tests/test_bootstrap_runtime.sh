@@ -39,7 +39,18 @@ FAKE
 chmod +x "$tmp_dir/ssh" "$tmp_dir/curl"
 
 models_file="$tmp_dir/models.json"
-printf '%s\n' '{"providers":{"other":{"baseUrl":"http://other/v1"},"evo-x2-llama":{"models":[{"id":"old"}]},"local-llama-cpp":{"models":[{"id":"old"}]},"gbrennon-llama":{"models":[{"id":"old"}]}}}' > "$models_file"
+cat > "$models_file" <<'JSON'
+{
+  "providers": {
+    "other": {"baseUrl": "http://other/v1"},
+    "gbrennon-server": {"models": [{"id": "Qwen3-Coder"}]},
+    "evo-x2-llama": {"models": [{"id": "old"}]},
+    "local-llama-cpp": {"models": [{"id": "old"}]},
+    "gbrennon-llama": {"models": [{"id": "old"}]},
+    "gbrennon-strata": {"models": [{"id": "old"}]}
+  }
+}
+JSON
 state_dir="$tmp_dir/state"
 SSH_LOG="$tmp_dir/ssh.log" SSH_BIN="$tmp_dir/ssh" CURL_BIN="$tmp_dir/curl" \
   PI_MODELS_FILE="$models_file" STATE_DIR="$state_dir" \
@@ -52,11 +63,10 @@ import json
 import sys
 
 providers = json.load(open(sys.argv[1]))["providers"]
-assert list(providers) == ["other", "gbrennon-llama", "gbrennon-strata"]
-assert providers["gbrennon-strata"]["baseUrl"] == "http://127.0.0.1:18080/v1"
-assert providers["gbrennon-strata"]["models"][0]["id"] == "qwen3.8-flash-next-iq3_s"
-assert "evo-x2-llama" not in providers
-assert "local-llama-cpp" not in providers
+assert list(providers) == ["other", "gbrennon-server"]
+assert providers["gbrennon-server"]["models"][0]["id"] == "Qwen3-Coder"
+for duplicate in ("evo-x2-llama", "local-llama-cpp", "gbrennon-llama", "gbrennon-strata"):
+    assert duplicate not in providers
 PY
 
 backup_count="$(find "$tmp_dir" -name 'models.json.*.bak' | wc -l)"
@@ -75,7 +85,7 @@ import json
 import sys
 
 providers = json.load(open(sys.argv[1]))["providers"]
-assert list(providers) == ["other", "gbrennon-llama"]
+assert list(providers) == ["other"]
 PY
 kill "$(cat "$state_dir/tunnel.pid")" 2>/dev/null || true
 original_models="$(cat "$models_file")"
@@ -89,6 +99,6 @@ test "$original_models" = "$(cat "$models_file")"
 status_output="$(SSH_BIN="$tmp_dir/ssh" CURL_BIN="$tmp_dir/curl" \
   PI_MODELS_FILE="$models_file" STATE_DIR="$state_dir" \
   TOGGLE_RUNTIME_ALLOW_NONROOT=1 "$script" status)"
-grep -q 'provider=gbrennon-llama' <<<"$status_output"
+grep -q 'provider=none' <<<"$status_output"
 grep -q 'tunnel=inactive' <<<"$status_output"
 printf 'bootstrap runtime tests passed\n'
