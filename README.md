@@ -31,8 +31,9 @@ make restore INVENTORY=inventory.ini LIMIT=strata-server
 ```
 
 The bootstrap command switches the remote service, creates an SSH tunnel on local port `18080`,
-verifies the OpenAI-compatible API, and updates Pi's `~/.pi/agent/models.json`. It uses the
-providers `gbrennon-strata` and `gbrennon-llama`. Run `/reload` and `/model` in an existing Pi
-session after switching. The deployment installs `toggle-ai-runtime` on the server. Benchmark
+and verifies the OpenAI-compatible API. Pi's canonical `gbrennon-server` provider is owned by
+`ai-server`; bootstrap removes obsolete local `gbrennon-strata` and `gbrennon-llama` entries
+without registering duplicate providers. Run `/reload` and `/model` in an existing Pi session
+after switching. The deployment installs `toggle-ai-runtime` on the server. Benchmark
 reports are written to `results/` on this workstation and are ignored by git. Strata runs in
 console/API mode with `--no-tui`; it does not open or require a web UI.
